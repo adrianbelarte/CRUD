@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Street Fighter - CRUD de Usuarios</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h2 { margin-top: 30px; }
+    form { margin-bottom: 20px; }
+    input { margin: 5px; }
+    button { margin-left: 5px; }
+  </style>
+</head>
+<body>
+  <h1>CRUD - Street Fighter Usuarios</h1>
+
+  <h2>Crear Usuario</h2>
+  <form id="formCrear">
+    <input type="text" name="nombre" placeholder="Nombre" required>
+    <input type="number" name="edad" placeholder="Edad" required>
+    <input type="text" name="lugarProcedencia" placeholder="Lugar de Procedencia" required>
+    <button type="submit">Crear</button>
+  </form>
+
+  <h2>Actualizar Usuario</h2>
+  <form id="formActualizar">
+    <input type="text" name="nombre" placeholder="Nombre a actualizar" required>
+    <input type="number" name="edad" placeholder="Nueva Edad">
+    <input type="text" name="lugarProcedencia" placeholder="Nuevo Lugar">
+    <button type="submit">Actualizar</button>
+  </form>
+
+  <h2>Eliminar Usuario</h2>
+  <form id="formEliminar">
+    <input type="text" name="nombre" placeholder="Nombre a eliminar" required>
+    <button type="submit">Eliminar</button>
+  </form>
+
+  <h2>Lista de Usuarios</h2>
+  <button onclick="cargarUsuarios()">Cargar Usuarios</button>
+  <ul id="listaUsuarios"></ul>
+
+  <script>
+    const api = 'http://localhost:3000/usuarios';
+
+    document.getElementById('formCrear').addEventListener('submit', async e => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target));
+      const res = await fetch(api, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      e.target.reset();
+      cargarUsuarios();
+    });
+
+    document.getElementById('formActualizar').addEventListener('submit', async e => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const nombre = form.get('nombre');
+      const datos = {};
+      if (form.get('edad')) datos.edad = parseInt(form.get('edad'));
+      if (form.get('lugarProcedencia')) datos.lugarProcedencia = form.get('lugarProcedencia');
+
+      await fetch(`${api}/${nombre}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(datos)
+      });
+      e.target.reset();
+      cargarUsuarios();
+    });
+
+    document.getElementById('formEliminar').addEventListener('submit', async e => {
+      e.preventDefault();
+      const nombre = new FormData(e.target).get('nombre');
+      await fetch(`${api}/${nombre}`, { method: 'DELETE' });
+      e.target.reset();
+      cargarUsuarios();
+    });
+
+    async function cargarUsuarios() {
+      const res = await fetch(api);
+      const usuarios = await res.json();
+      const lista = document.getElementById('listaUsuarios');
+      lista.innerHTML = '';
+      usuarios.forEach(u => {
+        const li = document.createElement('li');
+        li.textContent = `${u.nombre} - Edad: ${u.edad}, País: ${u.lugarProcedencia}`;
+        lista.appendChild(li);
+      });
+    }
+  </script>
+</body>
+</html>
